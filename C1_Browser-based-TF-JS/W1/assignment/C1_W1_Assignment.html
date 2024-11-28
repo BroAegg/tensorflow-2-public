@@ -13,8 +13,10 @@
             const trainingData = tf.data.csv(trainingUrl, {
                 
                 // YOUR CODE HERE
+            
+            
                 
-            });
+            }); 
             
             // Convert the training data into arrays in the space below.
             // Note: In this case, the labels are integers, not strings.
@@ -60,12 +62,57 @@
             const model = tf.sequential();
             
             // YOUR CODE HERE
+            // Menentukan kolom label pada training data
+            const trainingData = tf.data.csv(trainingUrl, {
+                columnConfigs: {
+                    diagnosis: { isLabel: true } // Kolom diagnosis adalah label
+                }
+            }); 
+
+            // Mengonversi training data menjadi tensor
+            const convertedTrainingData = trainingData.map(({ xs, ys }) => {
+                return {
+                    xs: Object.values(xs), // Fitur sebagai array tensor
+                    ys: Object.values(ys)  // Label sebagai array tensor
+                };
+            }).batch(32);
+
+            // Menentukan kolom label pada testing data
+            const testingData = tf.data.csv(testingUrl, {
+                columnConfigs: {
+                    diagnosis: { isLabel: true } // Kolom diagnosis adalah label
+                }
+            });
+
+            // Mengonversi testing data menjadi tensor
+            const convertedTestingData = testingData.map(({ xs, ys }) => {
+                return {
+                    xs: Object.values(xs), // Fitur sebagai array tensor
+                    ys: Object.values(ys)  // Label sebagai array tensor
+                };
+            }).batch(32);
+
+            // Menentukan jumlah fitur
+                const numOfFeatures = (await trainingData.take(1).toArray())[0].xs.length;
 
             
             
             // Compile the model using the binaryCrossentropy loss, 
             // the rmsprop optimizer, and accuracy for your metrics. 
             model.compile(// YOUR CODE HERE);
+            // Membuat neural network
+            const model = tf.sequential();
+            model.add(tf.layers.dense({ inputShape: [numOfFeatures], units: 16, activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 8, activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+
+            // Compile model
+            model.compile({
+                optimizer: 'rmsprop',
+                loss: 'binaryCrossentropy',
+                metrics: ['accuracy']
+            });
+
             
             
             await model.fitDataset(convertedTrainingData, 
